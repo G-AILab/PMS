@@ -1,0 +1,18 @@
+version: '3'
+services:
+    backend:
+        build:
+            context: ./workspace/power_model_system
+            dockerfile: Dockerfile
+        hostname: celery-node
+        command: ./scripts/start.sh
+        tty: true # 打开这个选项使得 bash 可以在后台运行
+        privileged: true
+        deploy:
+          resources:
+            limits:
+                memory: 100G
+        volumes:
+          - "./workspace/power_model_system:/workspace/power_model_system"
+          - "/mnt/storage/data:/workspace/data"
+          - "/mnt/storage/hd_ws:/workspace/hd_ws"

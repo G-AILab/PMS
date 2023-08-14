@@ -1,0 +1,33 @@
+version: '3'
+services:
+    backend:
+        build:
+            context: ./workspace/power_model_system
+            dockerfile: Dockerfile
+        hostname: 248-chenzhu
+        ports:
+          - '28888:8888'
+          - '22222:22'
+          - '28010:8010'
+        tty: true # 打开这个选项使得 bash 可以在后台运行
+        privileged: true
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - driver: nvidia
+                 # count: 1 # 限制设备数量
+                  device_ids: ['0'] # 限制设备id
+                  capabilities: [gpu] # 默认使用所有设备
+        volumes:
+          - "${PWD}/workspace/power_model_system:/workspace/power_model_system"
+          - "/mnt/nfs-storage/data:/workspace/data"
+          - "/mnt/nfs-storage/hd_ws:/workspace/hd_ws"
+        networks:
+          allnet:
+            ipv4_address: 172.20.0.5
+
+networks:
+   allnet:
+       external:
+           name: production_allnet

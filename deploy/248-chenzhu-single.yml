@@ -1,0 +1,108 @@
+version: '3'
+services:
+    backend:
+        build:
+            context: ./workspace/power_model_system
+            dockerfile: Dockerfile
+        hostname: 251-chenzhu
+        ports:
+          - '28888:8888'
+          - '22222:22'
+          - '28010:8010'
+        tty: true # 打开这个选项使得 bash 可以在后台运行
+        privileged: true
+        deploy:
+          resources:
+            limits:
+              cpus: 128
+              memory: 80G
+            reservations:
+              devices:
+                - driver: nvidia
+                # count: 1 # 限制设备数量
+                  device_ids: ['0'] # 限制设备id
+                  capabilities: [gpu] # 默认使用所有设备
+        volumes:
+          - "${PWD}/workspace/power_model_system:/workspace/power_model_system"
+          - "/mnt/nfs-storage/data:/workspace/data"
+          - "/mnt/nfs-storage/hd_ws:/workspace/hd_ws"
+        networks:
+          allnet:
+            ipv4_address: 172.20.0.5
+    redis:  # redis 默认端口 6379
+      image: redis:latest
+      ports:
+          - "6379:6379"
+      volumes:
+        - "./redis/data:/data"
+        - "./redis/redis.conf:/etc/redis/redis.conf"
+      command:  redis-server /etc/redis/redis.conf
+      deploy:
+          resources:
+              limits:
+                cpus: 20
+                memory: 40G
+      networks:
+          allnet:
+            ipv4_address: 172.20.0.8
+    frontend:
+      image: nginx:alpine
+      volumes:
+        - "${PWD}/nginx/default.conf:/etc/nginx/conf.d/default.conf"
+          # - "./etc/ssl:/etc/ssl"
+        - "${PWD}/frontend:/var/www/html"
+      ports:
+          - "80:80"
+      command: /bin/sh -c "nginx -g 'daemon off;'"
+      deploy:
+          resources:
+              limits:
+                cpus: 20
+                memory: 1G
+      restart: always
+      depends_on:
+          - backend
+    influxdb: #  8086
+      image: influxdb:1.7.4
+      ports:
+          - "8086:8086"
+      environment:
+        DOCKEINFLUXDB_INIT_USERNAME: root
+        DOCKER_INFLUXDB_INIT_PASSWORD: root
+      volumes:
+          - "/mnt/nfs-storage/influxdb/data:/var/lib/influxdb"
+      deploy:
+        resources:
+          limits:
+            cpus: 20
+            memory: 30G
+          reservations:
+            cpus: '0.5'
+            memory: 200M
+      networks:
+          allnet:
+            ipv4_address: 172.20.0.7
+    mysql: # 3306
+      image: mysql:5.7.20
+      ports:
+          - "3306:3306"
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+      volumes:
+          - "/mnt/nfs-storage/mysql/data:/var/lib/mysql"
+          - "/mnt/nfs-storage/mysql/mysql.conf.d:/etc/mysql/mysql.conf.d"
+      deploy:
+        resources:
+          limits:
+            cpus: 20
+            memory: 40G
+          reservations:
+            cpus: '0.5'
+            memory: 200M
+      networks:
+          allnet:
+            ipv4_address: 172.20.0.6
+networks:
+   allnet:
+       external:
+           name: production_allnet

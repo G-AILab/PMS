@@ -1,0 +1,26 @@
+class ModelStatus:
+    '''
+    模型状态码
+    '''
+    SETTING_UP = 0
+    SET_UP_DONE = 1
+    SET_UP_ERROR = 2
+
+    SELECTING = 3
+    SELECTING_DONE = 4
+    SELECTING_ERROR = 5
+
+    TRAINING_WAIT = 6
+    TRAINING = 7
+    TRAINING_DONE = 8
+    TRAINING_ERROR = 9
+
+    OPTIMIZING_WAIT = 10
+    OPTIMIZING = 11
+    OPTIMIZING_DONE = 12
+    OPTIMIZING_ERROR = 13
+
+    NOT_RUNNING = 14
+    RUNNING = 15
+    RUNNING_ERROR = 16
+    RUNNING_PAUSE = 17
