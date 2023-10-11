@@ -7,6 +7,7 @@ import signal
 import time
 import traceback
 
+import influxdb.client
 from flask import current_app, g, request
 # from hd.operate import (compare, evaluate, feature_select, load_model,optimize)
 # from hd.operate import train as model_train
@@ -14,7 +15,7 @@ from loguru import logger
 from pebble import ProcessPool
 
 import flask_app.util.process_manager as process_manager
-from flask_app import _get_config, db, redis, result_redis, flask_app
+from flask_app import _get_config, db, redis, result_redis, flask_app,influx
 from flask_app.api import handle_error
 from flask_app.common.before_request import get_request_data
 from flask_app.common.constants import ModelStatus
@@ -185,7 +186,12 @@ def select_feature():
 
     if (mid, version) in select_processes:
         return false_return('模型已在特征选择中！')
-
+    algorithm = Algorithm.get_by_id(aid=target_model.select_method)
+    if not algorithm:
+        raise AttributeError('找不到特征选择算法')
+    is_cuda = False
+    if algorithm.name != 'MutualInfo':
+        is_cuda = True
     num = int(data.get('num', 30))  # 特征选择个数
     # print("更新模型状态")
     Model.update_model(mid, version, {'status': ModelStatus.SELECTING})
@@ -195,7 +201,8 @@ def select_feature():
         "mid": mid,
         "version": version,
         "unit": g.unit,
-        "num": num
+        "num": num,
+        "is_cuda":is_cuda
     }
     redis.redis_client.xadd("msg_queue", {"select": json.dumps(msg)})
 
@@ -442,7 +449,7 @@ def evaluate_model():
     if not model:
         return false_return('找不到指定模型')
     import rpyc
-    aps_rpc = rpyc.connect(_get_config.RPC_IP, _get_config.RPC_PORT,config={'sync_request_timeout': 5})
+    aps_rpc = rpyc.connect(_get_config.RPC_IP, _get_config.RPC_PORT,config={'sync_request_timeout': 60})
     results = aps_rpc.root.evaluate(model_path=model.save_path, metrics=metrics, optimization=optimization)
     if results is None:
         return true_return('模型结果不存在', None)
@@ -463,9 +470,21 @@ def evaluate_model():
 
     Model.update_model(mid, version, {'evaluate_results': json.dumps(new_eval_res,cls=JsonEncoder,indent=4)})
 
-    results['res'] = {'target': [], 'pred': []}
-    if not optimization:
-        results['res'] = get_res(model.save_path)
+    if optimization :
+        results['res'] = {'target': [], 'pred': []}
+        return true_return(data=results)
+
+    midv = f"M{mid}"
+    res = influx.client.query(f"select pred,target from train_res where midv='{midv}'")
+    target = []
+    pred = []
+    for item in res.get_points():
+        target.append(item.get('target', 0))
+        pred.append(item.get('pred', 0))
+    results['res'] = {'target': target, 'pred': pred}
+    #     aps_rpc = rpyc.connect(_get_config.RPC_IP, _get_config.RPC_PORT, config={'sync_request_timeout': 5})
+    #     results['res'] = aps_rpc.root.get_res(model.save_path)
+        #results['res'] = get_res(model.save_path)
     return true_return(data=results)
 
 
@@ -793,6 +812,9 @@ def export_all_model():
 @model_blueprint.route('/export', methods=['POST'])
 @handle_error
 def export_model():
+    """
+    运行模型
+    """
     success, data = get_request_data(request, ['mid', 'version'])
     if not success:
         return false_return(data)

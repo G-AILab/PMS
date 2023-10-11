@@ -1,4 +1,3 @@
-from cv2 import split
 from flask_app.util.db.influxDB_util.client import InfluxDBClient
 from flask_app.util.common.time_trans import *
 import redis

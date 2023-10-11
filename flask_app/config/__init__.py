@@ -25,8 +25,8 @@ def get_config():
     if MixedConfig.inited:
         return MixedConfig
     else:
-        #env_config = os.getenv("FLASK_CONFIG")
-        env_config = "local"
+        env_config = os.getenv("FLASK_CONFIG")
+        # env_config = "local"
         _override_config = CONFIG_NAME_MAPPER.get(env_config, DevelopmentConfig) # 默认为 development config
         MixedConfig.CONFIG_NAME = env_config
 

@@ -13,9 +13,12 @@ User = namedtuple('User', ['uid', 'username', 'role_id'])
 @auth.verify_token
 def verify_token(token):
     """
-    请求时带上参数头
+    请求时带上参数头 TODO
     headers['Authorization'] = 'Bearer ' + token
     """
+    User = namedtuple('User', ['uid', 'username', 'role_id'])
+    user=User('1', 'admin', '2')
+    g.user = user
     # key = current_app.config['SECRET_KEY']
     # try:
     #     jwt.decode(token, key)

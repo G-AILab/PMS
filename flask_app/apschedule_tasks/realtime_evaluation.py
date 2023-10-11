@@ -3,7 +3,7 @@ import logging
 import time
 from logging.handlers import TimedRotatingFileHandler
 
-import hd.evaluation
+
 from flask_app.apschedule_tasks import _get_config, result_redis
 from flask_app.apschedule_tasks import app as flask_app
 from flask_app.models.model import Model
@@ -147,13 +147,13 @@ def realtime_eval_task():
 
 def get_metric_method(name_str: str):
     metric_func = None
-    try:
-        if name_str != 'r2_score':
-            metric_func = getattr(hd.evaluation, name_str)
-    except AttributeError:
-        print('[ERROR] metric "{}" not support!'.format(name_str))
-    except Exception as e:
-        raise e
+    # try:
+    #     if name_str != 'r2_score':
+    #         metric_func = getattr(hd.evaluation, name_str)
+    # except AttributeError:
+    #     print('[ERROR] metric "{}" not support!'.format(name_str))
+    # except Exception as e:
+    #     raise e
     return metric_func
 
 

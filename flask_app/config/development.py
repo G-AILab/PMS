@@ -9,7 +9,16 @@ class DevelopmentConfig(Config):
         # ('248', 'admin1', '172.17.86.16', 22),
         # ('247', 'grid', '172.16.0.1', 22),
     ]
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@192.168.100.251:35606/power_model'
+    REDIS_HOST = '192.168.100.251'
+    REDIS_PORT = 24879
+    INFLUX_HOST = '192.168.100.251'
+    INFLUX_PORT = 8091
 
+    REMOTE_HOST = "172.17.86.16"
+    REMOTE_PORT = 28888
+    RPC_IP = "175.6.203.76"
+    RPC_PORT = 36557
     # apschedule任务最大并发数
     APS_MAX_INSTANCE = 10
     # apschedule任务列表
@@ -24,16 +33,16 @@ class DevelopmentConfig(Config):
             # 'misfire_grace_time': 10,
             'coalesce': False
         },
-        {
-            'id': 'server_usage',
-            'func': '__main__:get_remote_server_stats',
-            'args': (),
-            'trigger': 'interval',
-            'seconds': 5,
-            'max_instances': APS_MAX_INSTANCE,
-            # 'misfire_grace_time': 10,
-            'coalesce': False
-        },
+        # {
+        #     'id': 'server_usage',
+        #     'func': '__main__:get_remote_server_stats',
+        #     'args': (),
+        #     'trigger': 'interval',
+        #     'seconds': 5,
+        #     'max_instances': APS_MAX_INSTANCE,
+        #     # 'misfire_grace_time': 10,
+        #     'coalesce': False
+        # },
         {
             'id': 'check_points',
             'func': '__main__:point_check_task',
@@ -79,24 +88,20 @@ class TestingConfig(Config):
     INFLUX_HOST = "192.168.0.102"
     INFLUX_PORT = 8085
 
-    CELERY_BROKER_URL = 'redis://192.168.0.102:3377/5'
-    CELERY_RESULT_BACKEND = 'redis://192.168.0.102:3377/3'
-
 
 class LocalConfig(Config):
     DEBUG = True
     JOBS = []
 
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@192.168.100.251:3311/power_model'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@192.168.100.251:35606/power_model'
 
     REDIS_HOST = '192.168.100.251'
-    REDIS_PORT = 6385
+    REDIS_PORT = 24879
     INFLUX_HOST = '192.168.100.251'
     INFLUX_PORT = 8091
 
-    CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/5'
-    CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/3'
-
     REMOTE_HOST = "172.17.86.16"
     REMOTE_PORT = 28888
-
+    PRIVATE_KEY_PATH = "C:\\Users\\dell\\.ssh\\id_rsa"
+    RPC_IP = "175.6.203.76"
+    RPC_PORT = 36557

@@ -19,11 +19,11 @@ if __name__ == '__main__':
         "start at": 18888,
         "config": app.config
     })
-
-    if sys.platform != "win32":
-        from gunicorn.app.pasterapp import serve
-        serve(app=app, global_conf={
-            '__file__': ""
-        }, config="./gunicorn.conf.py", host="0.0.0.0", port="47256")
-    else:
-        app.run(host="0.0.0.0", port=4399)
+    app.run(host="0.0.0.0", port=4399)
+    # if sys.platform != "win32":
+    #     from gunicorn.app.pasterapp import serve
+    #     serve(app=app, global_conf={
+    #         '__file__': ""
+    #     }, config="./gunicorn.conf.py", host="0.0.0.0", port="47256")
+    # else:
+    #     app.run(host="0.0.0.0", port=4388)
